@@ -1,0 +1,251 @@
+"""
+This code can help you pick the data out from micaps(.000) file.
+It can only process surface plot data.Please run on python3
+
+2018-07-10 14:35 : modified by Lu Wen ,Nuist .
+E-mail:luw1996@163.com
+If you have any questions , we can communicate by mail.
+"""
+import os
+import shutil
+import csv
+import calendar
+import datetime
+import tkinter.filedialog
+
+
+def get_processing_time():
+    print("Please enter the begining time! Such as 20180101 .")
+    p=input("Begining time : ")
+    print("Please enter the ending time! Such as 20180101 .")
+    q=input("Ending time : ")
+    return p,q
+
+
+def get_station_number():
+    """Get the micaps station number"""
+    """It will reture a list that contain the station number"""
+    print("Please enter the station number to process ! Such as 58238")
+    station_name=[]
+    while True:
+        print("\nIf you want to terminate the input, please enter q to exit!")
+        x=input("station : ")
+        if x!="q" and len(x)==5:
+            station_name.append(x)
+            print("\nThe station you want to process ")
+            print(station_name)
+            continue
+        if x=="q":
+            break
+        while len(x)!=5:
+            print("\nInput errors, please re-enter")
+            print("If you want to terminate the input, please enter q to exit!")
+            x=input("station : ")
+            if x=="q":
+                break
+        if x=="q":
+            break
+        else:
+            station_name.append(x)
+        print("The station you want to process ")
+        print(station_name)
+    return station_name
+
+
+def get_time_list(begin_date,end_date):
+    date_list,time_list = [],[]
+    begin_date = datetime.datetime.strptime(begin_date, "%Y%m%d")
+    end_date = datetime.datetime.strptime(end_date,"%Y%m%d")
+    while begin_date <= end_date:
+        date_str = begin_date.strftime("%Y%m%d")
+        date_list.append(date_str)
+        begin_date += datetime.timedelta(days=1)
+    for i in date_list:
+        for j in range(2,24,3):
+            if j<10:
+                j="0"+str(j)
+            else:
+                j=str(j)
+            time_list.append(i+j)
+    return time_list
+
+
+def get_filename():
+    """Get the name of the file to be processed !"""
+    """Get the file time to write in csv file !"""
+    file_time=[]
+    file_name= tkinter.filedialog.askopenfilenames(initialdir='C:/')
+    return file_name
+
+
+def if_missing(data):
+    if data=="9999":
+        
+        return ""
+    else:
+        return data
+
+
+def get_data(file_path,cite):
+    with open(file_path ,"r") as  aa:
+        """Declare the variable name used !"""
+        """ Variable name in line 1"""
+        """zhandianhao"""
+        station=[]
+        """jingdu & weidu"""
+        lon,lat=[],[]
+        """bahaigaodu & zhandianjibie"""
+        bahai_high,station_lev=[],[]
+        """zongyunliang"""
+        all_cloud_cover=[]
+        """fengxiang & fengsu"""
+        wd,ws=[],[]
+        """haipingmianqiya & 3h bianya"""
+        sea_pressure,vary_pressure_3h=[],[]
+        """guoqutianqi 1 & 2"""
+        old_weather1,old_weather2=[],[]
+        
+        """Variable name in line 2"""
+        """6h jiangshui"""
+        precipitation_6h=[]
+        """diyunzhuang & diyunliang"""
+        low_cloud_appearance,low_cloud_num=[],[]
+        """diyungao"""
+        low_cloud_height=[]
+        """ludian & nengjiandu"""
+        dew_point,vis=[],[]
+        """xianzaitianqi"""
+        weather_now=[]
+        """wendu shidu"""
+        temperature,rh=[],[]
+        """zhongyunzhuang """
+        middle_cloud_appearance=[]
+        """gaoyunzhuang"""
+        high_cloud_appearance=[]
+        """symble 1 & 2"""
+        symble1,symble2=[],[]
+        """24hbianwen & 24hbianya"""
+        heterotherm_24h,varying_pressure_24h=[],[]
+        p=aa.readlines()
+        num=0
+        for i in p:
+            num=num+1
+        if num%2==1:
+            num=num-1       
+        kk0=p[1].strip().split(*"")
+        time="20"+str(kk0[0]+kk0[1]+kk0[2]+kk0[3])
+        for i in range(2,num,2):
+            kk1=p[i].strip().split(*"")
+            if len(kk1)!=12:break
+            station.append(if_missing(kk1[0]))
+            lon.append(if_missing(kk1[1]))
+            lat.append(if_missing(kk1[2]))
+            bahai_high.append(if_missing(kk1[3]))
+            station_lev.append(if_missing(kk1[4]))
+            all_cloud_cover.append(if_missing(kk1[5]))
+            wd.append(if_missing(kk1[6]))
+            ws.append(if_missing(kk1[7]))
+            sea_pressure.append(if_missing(kk1[8]))
+            vary_pressure_3h.append(if_missing(kk1[9]))
+            old_weather1.append(if_missing(kk1[10]))
+            old_weather2.append(if_missing(kk1[11]))
+        for i in range(3,num+1,2):
+            kk2=p[i].strip().split(*"")
+            if len(kk2)!=14:break
+            precipitation_6h.append(if_missing(kk2[0]))
+            low_cloud_appearance.append(if_missing(kk2[1]))
+            low_cloud_num.append(if_missing(kk2[2]))
+            low_cloud_height.append(if_missing(kk2[3]))
+            dew_point.append(if_missing(kk2[4]))
+            vis.append(if_missing(kk2[5]))
+            weather_now.append(if_missing(kk2[6]))
+            temperature.append(if_missing(kk2[7]))
+            middle_cloud_appearance.append(if_missing(kk2[8]))
+            high_cloud_appearance.append(if_missing(kk2[9]))
+            symble1.append(if_missing(kk2[10]))
+            symble2.append(if_missing(kk2[11]))
+            heterotherm_24h.append(if_missing(kk2[12]))
+            varying_pressure_24h.append(if_missing(kk2[13]))
+        """Calculate relative humidity !"""
+        for i in range(len(temperature)):
+            if temperature[i]!="" and dew_point[i]!="":
+                te=float(temperature[i])
+                td=float(dew_point[i])
+                rh.append(str((td+19.2-0.84*te)/(0.198+0.0017*te))[0:5])
+            else:
+                rh.append("")
+
+        data_all={}
+        data_empty={}
+        data_empty["time"]=time
+        data_empty["T"]=""
+        data_empty["ws"]=""
+        data_empty["wd"]=""
+        data_empty["rh"]=""
+        data_empty["Pressure"]=""
+        data_empty["precipitation_6h"]=""
+        for i in range(len(station)):
+            data1={}
+            data1["time"]=time
+            pp=station[i]
+            data1["ws"]=ws[i]
+            data1["wd"]=wd[i]
+            data1["rh"]=rh[i]
+            data1["T"]=temperature[i]
+            data1["Pressure"]=sea_pressure[i]
+            data1["precipitation_6h"]=precipitation_6h[i]            
+            data_all[pp]=data1
+        if cite in data_all:
+            return data_all[cite]
+        else:
+            return data_empty
+
+
+def buquan(date_list,data):
+    cc={}
+    for i in date_list:
+        empty_dd={}
+        empty_dd["time"]=i
+        empty_dd["ws"]=""
+        empty_dd["wd"]=""
+        empty_dd["rh"]=""
+        empty_dd["T"]=""
+        empty_dd["Pressure"]=""
+        empty_dd["precipitation_6h"]=""
+        if i not in data:
+            print(i[2:] + ".000  -> file doesn't exist ")
+            cc[i]=empty_dd
+        else:
+            cc[i]=data[i]
+    return cc
+
+"""Main program"""
+
+if __name__ == "__main__":
+    begin_date,end_date=get_processing_time()
+    station_num=get_station_number()
+    file_names=get_filename()
+    for s in station_num:
+        """Data header file"""
+        hh="time"+","+"T"+","+\
+           "RH"+","+"ws"+","+\
+           "wd"+","+"P"+\
+           ","+"pre_6h"+"\n"
+        dd={}
+        out_path=s+".csv"
+        if os.path.isfile(out_path):os.remove(out_path)
+        with open (out_path,"w") as aa:
+            aa.write(hh)
+        for file_name in file_names:
+            c=get_data(file_name,s)
+            tt=c["time"]
+            dd[tt]=c
+        ppp=get_time_list(begin_date,end_date)
+        qq=buquan(ppp,dd)
+        with open (out_path,"a") as aa:
+            for vv in qq.values():
+                plus=vv["time"]+","+vv["T"]+","+\
+                     vv["rh"]+","+vv["ws"]+","+\
+                     vv["wd"]+","+vv["Pressure"]+","+\
+                     vv["precipitation_6h"]+"\n"
+                aa.write(plus)    
